@@ -1,6 +1,6 @@
 {
   "name": "supyo",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A face detection library for node.js using PICO",
   "main": "index.js",
   "scripts": {
