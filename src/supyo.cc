@@ -15,10 +15,6 @@ using namespace node;
   object detection parameters
 */
 
-#ifndef QCUTOFF
-#define QCUTOFF 50.0f
-#endif
-
 #ifndef SCALEFACTOR
 #define SCALEFACTOR 1.2f
 #endif
@@ -37,6 +33,7 @@ Handle<Value> Detect(const Arguments& args) {
   int32_t ncols = args[1]->IntegerValue();
   int32_t nrows = args[2]->IntegerValue();
   int32_t minsize = args[3]->IntegerValue();
+  float cutoff = (float)args[4]->NumberValue();
 
   #define MAXNDETECTIONS 2048
   int ndetections;
@@ -63,8 +60,7 @@ Handle<Value> Detect(const Arguments& args) {
 
   int detected = 0;
   for (int i = 0; i < ndetections; ++i) {
-    printf("quality: %f\n", qs[i]);
-    if(qs[i] >= QCUTOFF) {
+    if(qs[i] >= cutoff) {
       detected = 1;
       break;
     }
