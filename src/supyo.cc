@@ -44,7 +44,7 @@ Handle<Value> Detect(const Arguments& args) {
     cs[MAXNDETECTIONS], ss[MAXNDETECTIONS];
 
   // a structure that encodes object appearance
-  static char appfinder[] = {
+  static unsigned char appfinder[] = {
     #include "pico/facefinder.ea"
   };
 
