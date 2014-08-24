@@ -8,11 +8,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/joshmh/node-supyo.git"
+    "url": "git://github.com/lamassu/node-supyo.git"
   },
   "author": "Josh Harvey <josh@lamassu.is> (https://lamassu.is/)",
   "license": "UNLICENSE",
   "bugs": {
-    "url": "https://github.com/joshmh/node-supyo/issues"
+    "url": "https://github.com/lamassu/node-supyo/issues"
   }
 }
