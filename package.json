@@ -14,5 +14,8 @@
   "license": "UNLICENSE",
   "bugs": {
     "url": "https://github.com/lamassu/node-supyo/issues"
+  },
+  "dependencies": {
+    "nan": "^2.3.5"
   }
 }

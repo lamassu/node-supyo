@@ -1,15 +1,8 @@
-#include <node.h>
-#include <v8.h>
-#include <node_buffer.h>
-
-// C standard library
 #include <cstdlib>
 #include <ctime>
+#include <nan.h>
 
 #include "pico/picort.c"
-
-using namespace v8;
-using namespace node;
 
 /*
   object detection parameters
@@ -23,17 +16,17 @@ using namespace node;
 #define STRIDEFACTOR 0.1f
 #endif
 
-Handle<Value> Detect(const Arguments& args) {
-  HandleScope scope;
+using namespace v8;
 
-  Local<Object> bufferObj = args[0]->ToObject();
-  uint8_t* pixels = (uint8_t *)Buffer::Data(bufferObj);
+NAN_METHOD(Detect) {
+  Local<Object> bufferObj = info[0].As<v8::Object>();
+  uint8_t* pixels = (uint8_t *)node::Buffer::Data(bufferObj);
 //  size_t        npixels = Buffer::Length(bufferObj);
 
-  int32_t ncols = args[1]->IntegerValue();
-  int32_t nrows = args[2]->IntegerValue();
-  int32_t minsize = args[3]->IntegerValue();
-  float cutoff = (float)args[4]->NumberValue();
+  int32_t ncols = info[1]->IntegerValue();
+  int32_t nrows = info[2]->IntegerValue();
+  int32_t minsize = info[3]->IntegerValue();
+  float cutoff = (float)info[4]->NumberValue();
 
   #define MAXNDETECTIONS 2048
   int ndetections;
@@ -58,22 +51,20 @@ Handle<Value> Detect(const Arguments& args) {
       min_dimension, 1);
   }
 
-  int detected = 0;
+  bool detected = false;
   for (int i = 0; i < ndetections; ++i) {
     if(qs[i] >= cutoff) {
-      detected = 1;
+      detected = true;
       break;
     }
   }
 
-  return scope.Close(Boolean::New(detected));
+  info.GetReturnValue().Set(Nan::New(detected));
 }
 
-void RegisterModule(Handle<Object> target) {
-
-    // target is the module object you see when require()ing the .node file.
-  target->Set(String::NewSymbol("detect"),
-    FunctionTemplate::New(Detect)->GetFunction());
+NAN_MODULE_INIT(InitAll) {
+  Nan::Set(target, Nan::New("detect").ToLocalChecked(),
+    Nan::GetFunction(Nan::New<FunctionTemplate>(Detect)).ToLocalChecked());
 }
 
-NODE_MODULE(supyo, RegisterModule);
+NODE_MODULE(supyo, InitAll);
