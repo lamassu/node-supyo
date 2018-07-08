@@ -5,4 +5,8 @@ A face detection library for node.js using PICO
 
 See:
 
-> N. Markus, M. Frljak, I. S. Pandzic, J. Ahlberg and R. Forchheimer, Object Detection with Pixel Intensity Comparisons Organized in Decision Trees, http://arxiv.org/abs/1305.4537
+> https://apurv.me/accessing-and-streaming-webcam-in-nodejs-using-opencv-and-websockets/
+
+### About facefinder.ea
+
+When updating from https://github.com/nenadmarkus/pico use https://github.com/megastep/bin2c to regenarate it

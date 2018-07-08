@@ -4,7 +4,7 @@
   "description": "A face detection library for node.js using PICO",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tape tests/**/*.js"
   },
   "repository": {
     "type": "git",
@@ -17,5 +17,9 @@
   },
   "dependencies": {
     "nan": "^2.3.5"
+  },
+  "devDependencies": {
+    "jpeg-turbo": "^0.4.0",
+    "tape": "^4.9.1"
   }
 }
