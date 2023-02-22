@@ -79,24 +79,27 @@ using namespace v8;
  * @param {boolean}  verbose - print debug messages to stdout
  */
 NAN_METHOD(Detect) {
+  auto ctx = Nan::GetCurrentContext();
+  auto isolate = v8::Isolate::GetCurrent();
+
   // greyscale image
   Local<Object> bufferObj = info[0].As<v8::Object>();
   uint8_t* pixels = (uint8_t *)node::Buffer::Data(bufferObj);
   // image width
-  int32_t ncols   = info[1]->IntegerValue();
+  int32_t ncols   = info[1]->IntegerValue(ctx).ToChecked();
   // image height
-  int32_t nrows   = info[2]->IntegerValue();
+  int32_t nrows   = info[2]->IntegerValue(ctx).ToChecked();
   // sets the minimum size (in pixels) of an object - suggested 128
-  int32_t minsize = info[3]->IntegerValue();
+  int32_t minsize = info[3]->IntegerValue(ctx).ToChecked();
 
   // detection quality threshold (must be >= 0.0f)
  	// you can vary the TPR and FPR with this value
  	// if you're experiencing too many false positives
   // try a larger number here (for example, 7.5f)
-  float cutoff    = (float)info[4]->NumberValue();
+  float cutoff    = (float)info[4]->NumberValue(ctx).ToChecked();
 
   // print debug messages to stdout
-  bool verbose    = (bool)info[5]->BooleanValue();
+  bool verbose    = (bool)info[5]->BooleanValue(isolate);
 
   if (verbose) {
     size_t npixels = node::Buffer::Length(bufferObj);
