@@ -4,8 +4,6 @@
 
 #include "pico/picort.c"
 
-#define MIN(a, b) ((a)<(b)?(a):(b))
-
 /*
  * a portable time function
  */
