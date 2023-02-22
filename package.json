@@ -1,6 +1,6 @@
 {
   "name": "@lamassu/supyo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A face detection library for node.js using PICO",
   "main": "index.js",
   "scripts": {
