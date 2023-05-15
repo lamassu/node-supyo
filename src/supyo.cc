@@ -4,8 +4,6 @@
 
 #include "pico/picort.c"
 
-#define MIN(a, b) ((a)<(b)?(a):(b))
-
 /*
  * a portable time function
  */
@@ -81,28 +79,31 @@ using namespace v8;
  * @param {boolean}  verbose - print debug messages to stdout
  */
 NAN_METHOD(Detect) {
+  auto ctx = Nan::GetCurrentContext();
+  auto isolate = v8::Isolate::GetCurrent();
+
   // greyscale image
   Local<Object> bufferObj = info[0].As<v8::Object>();
   uint8_t* pixels = (uint8_t *)node::Buffer::Data(bufferObj);
   // image width
-  int32_t ncols   = info[1]->IntegerValue();
+  int32_t ncols   = info[1]->IntegerValue(ctx).ToChecked();
   // image height
-  int32_t nrows   = info[2]->IntegerValue();
+  int32_t nrows   = info[2]->IntegerValue(ctx).ToChecked();
   // sets the minimum size (in pixels) of an object - suggested 128
-  int32_t minsize = info[3]->IntegerValue();
+  int32_t minsize = info[3]->IntegerValue(ctx).ToChecked();
 
   // detection quality threshold (must be >= 0.0f)
  	// you can vary the TPR and FPR with this value
  	// if you're experiencing too many false positives
   // try a larger number here (for example, 7.5f)
-  float cutoff    = (float)info[4]->NumberValue();
+  float cutoff    = (float)info[4]->NumberValue(ctx).ToChecked();
 
   // print debug messages to stdout
-  bool verbose    = (bool)info[5]->BooleanValue();
+  bool verbose    = (bool)info[5]->BooleanValue(isolate);
 
   if (verbose) {
     size_t npixels = node::Buffer::Length(bufferObj);
-    printf("# image %d x %d = %zu pixes\n", ncols, nrows, npixels);
+    fprintf(stderr, "[supyo] image %d x %d = %zu pixes\n", ncols, nrows, npixels);
   }
 
   int ndetections = 0, i;
@@ -118,7 +119,7 @@ NAN_METHOD(Detect) {
   int width_step = (rem == 0) ? size_row_raw : size_row_raw + rem;
 
   if (verbose) {
-    printf("# width_step %d\n", width_step);
+    fprintf(stderr, "[supyo] width_step %d\n", width_step);
   }
 
 	// perform detection with the pico library
@@ -146,32 +147,32 @@ NAN_METHOD(Detect) {
       MIN(nrows, ncols));
 
     if (verbose) {
-      printf("# orientation %f ndetections %d\n", orientation * 2 * 3.14f, ndetections);
+      fprintf(stderr, "[supyo] orientation %f ndetections %d\n", orientation * 2 * 3.14f, ndetections);
     }
   }
 
   ndetections = cluster_detections(rcsq, ndetections);
   if (verbose) {
-    printf("# cluster detections %d\n", ndetections);
+    fprintf(stderr, "[supyo] cluster detections %d\n", ndetections);
   }
 
   for (i = 0; i < ndetections; ++i) {
     // check the confidence threshold
     if(rcsq[4*i+3] >= cutoff) {
       if (verbose) {
-        printf("# face detected at (x=%d, y=%d, r=%d) confidence %f\n", (int)rcsq[4*i+0], (int)rcsq[4*i+1], (int)rcsq[4*i+2], rcsq[4*i+3]);
+        fprintf(stderr, "[supyo] face detected at (x=%d, y=%d, r=%d) confidence %f\n", (int)rcsq[4*i+0], (int)rcsq[4*i+1], (int)rcsq[4*i+2], rcsq[4*i+3]);
       }
 
       detected = true;
       break;
     } else if (verbose) {
-      printf("# result confidence %f < threshold (%f)\n", rcsq[4*i+3], cutoff);
+      fprintf(stderr, "[supyo] result confidence %f < threshold (%f)\n", rcsq[4*i+3], cutoff);
     }
   }
 
   if (verbose) {
     t = getticks() - t;
-    printf("# time taken %f\n", 1000.0f * t);
+    fprintf(stderr, "[supyo] time taken %f\n", 1000.0f * t);
   }
 
   info.GetReturnValue().Set(Nan::New(detected));
