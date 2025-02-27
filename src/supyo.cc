@@ -95,9 +95,12 @@ Napi::Value DetectFaces(const Napi::CallbackInfo& info) {
   int32_t ncols = info[1].ToNumber().Int32Value();
   // image height
   int32_t nrows = info[2].ToNumber().Int32Value();
-  // sets the minimum size (in pixels) of an object
+  // sets the minimum size (in pixels) of an object - suggested 128
   int32_t minsize = info.Length() > 3 ? info[3].ToNumber().Int32Value() : 100;
-  // detection quality threshold
+  // detection quality threshold (must be >= 0.0f)
+ 	// you can vary the TPR and FPR with this value
+ 	// if you're experiencing too many false positives
+  // try a larger number here (for example, 7.5f)
   float cutoff = info.Length() > 4 ? info[4].ToNumber().FloatValue() : 5.0f;
   // print debug messages to stdout
   bool verbose = info.Length() > 5 ? info[5].ToBoolean().Value() : false;
@@ -132,6 +135,10 @@ Napi::Value DetectFaces(const Napi::CallbackInfo& info) {
   };
 
   for (i = 1; i <= 4; i++) {
+    // `orientation` is a number between 0 and 1 that determines the counterclockwise
+    // in-plane rotation of the cascade: 0.0f corresponds to 0 radians
+    // and 1.0f corresponds to 2*pi radians
+    //orientation = i * 2 * 3.14f / 4;
     orientation = i / 4.f;
 
     ndetections += find_objects(rcsq,
