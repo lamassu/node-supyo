@@ -1,6 +1,6 @@
 'use strict'
 
-var supyo = require('./build/Release/supyo')
+const { detectFaces } = require('./build/Release/supyo')
 
 /**
  * @param {Buffer} image
@@ -12,10 +12,17 @@ var supyo = require('./build/Release/supyo')
  * @param {boolean} [opts.verbose=false] hide/show debug information
  * @returns {boolean} face has been detected or not
  */
-exports.detect = function detect (image, width, height, opts) {
-  opts = opts || {}
+function detect(image, width, height, opts = {}) {
   var minSize = opts.minSize || 100
   var qualityThreshold = opts.qualityThreshold || 5.0
   var verbose = opts.verbose || false
-  return supyo.detect(image, width, height, minSize, qualityThreshold, verbose)
+  try {
+    return detectFaces(image, width, height, minSize, qualityThreshold, verbose)
+  } catch (error) {
+    throw new Error(`Face detection failed: ${error.message}`)
+  }
+}
+
+module.exports = {
+  detect
 }
