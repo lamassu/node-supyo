@@ -1,11 +1,8 @@
 {
   "name": "@lamassu/supyo",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A face detection library for node.js using PICO",
   "main": "index.js",
-  "scripts": {
-    "test": "tape tests/**/*.js"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/lamassu/node-supyo.git"
@@ -15,11 +12,16 @@
   "bugs": {
     "url": "https://github.com/lamassu/node-supyo/issues"
   },
+  "scripts": {
+    "test": "node tests/index.js"
+  },
   "dependencies": {
-    "nan": "^2.3.5"
+    "node-addon-api": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   },
   "devDependencies": {
-    "jpeg-turbo": "^0.4.0",
-    "tape": "^4.9.1"
+    "sharp": "^0.33.5"
   }
 }

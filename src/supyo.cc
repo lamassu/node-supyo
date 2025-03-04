@@ -1,6 +1,6 @@
 #include <cstdlib>
 #include <ctime>
-#include <nan.h>
+#include <napi.h>
 
 #include "pico/picort.c"
 
@@ -70,39 +70,44 @@ float getticks()
  */
 #define MAXNDETECTIONS 2048
 
-using namespace v8;
-
 /**
- * @param {uint8_t*} buffer - byte array of the greyscale image
- * @param {number}   ncols  - image width (in pixels)
- * @param {number}   nrows  - image height (in pixels)
- * @param {number}   minsize - face minimum size (in pixels)
- * @param {number}   cutoff - quality threshold (suggested 0.5)
- * @param {boolean}  verbose - print debug messages to stdout
+ * @param {Buffer} image - byte array of the greyscale image
+ * @param {number} width - image width (in pixels)
+ * @param {number} height - image height (in pixels)
+ * @param {number} minSize - face minimum size (in pixels)
+ * @param {number} qualityThreshold - quality threshold (suggested 0.5)
+ * @param {boolean} verbose - print debug messages to stdout
  */
-NAN_METHOD(Detect) {
-  // greyscale image
-  Local<Object> bufferObj = info[0].As<v8::Object>();
-  uint8_t* pixels = (uint8_t *)node::Buffer::Data(bufferObj);
-  // image width
-  int32_t ncols   = info[1]->IntegerValue();
-  // image height
-  int32_t nrows   = info[2]->IntegerValue();
-  // sets the minimum size (in pixels) of an object - suggested 128
-  int32_t minsize = info[3]->IntegerValue();
+Napi::Value DetectFaces(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+  
+  // Input validation
+  if (info.Length() < 3 || !info[0].IsBuffer()) {
+    Napi::TypeError::New(env, "Expected arguments: image buffer, width, height").ThrowAsJavaScriptException();
+    return Napi::Boolean::New(env, false);
+  }
 
+  // Get input parameters
+  Napi::Buffer<uint8_t> bufferObj = info[0].As<Napi::Buffer<uint8_t>>();
+  uint8_t* pixels = bufferObj.Data();
+  
+  // image width
+  int32_t ncols = info[1].ToNumber().Int32Value();
+  // image height
+  int32_t nrows = info[2].ToNumber().Int32Value();
+  // sets the minimum size (in pixels) of an object - suggested 128
+  int32_t minsize = info.Length() > 3 ? info[3].ToNumber().Int32Value() : 100;
   // detection quality threshold (must be >= 0.0f)
  	// you can vary the TPR and FPR with this value
  	// if you're experiencing too many false positives
   // try a larger number here (for example, 7.5f)
-  float cutoff    = (float)info[4]->NumberValue();
-
+  float cutoff = info.Length() > 4 ? info[4].ToNumber().FloatValue() : 5.0f;
   // print debug messages to stdout
-  bool verbose    = (bool)info[5]->BooleanValue();
+  bool verbose = info.Length() > 5 ? info[5].ToBoolean().Value() : false;
 
   if (verbose) {
-    size_t npixels = node::Buffer::Length(bufferObj);
-    printf("# image %d x %d = %zu pixes\n", ncols, nrows, npixels);
+    size_t npixels = bufferObj.Length();
+    printf("# image %d x %d = %zu pixels\n", ncols, nrows, npixels);
   }
 
   int ndetections = 0, i;
@@ -121,8 +126,8 @@ NAN_METHOD(Detect) {
     printf("# width_step %d\n", width_step);
   }
 
-	// perform detection with the pico library
-	t = getticks();
+  // perform detection with the pico library
+  t = getticks();
 
   // a structure that encodes object appearance
   static unsigned char appfinder[] = {
@@ -159,7 +164,8 @@ NAN_METHOD(Detect) {
     // check the confidence threshold
     if(rcsq[4*i+3] >= cutoff) {
       if (verbose) {
-        printf("# face detected at (x=%d, y=%d, r=%d) confidence %f\n", (int)rcsq[4*i+0], (int)rcsq[4*i+1], (int)rcsq[4*i+2], rcsq[4*i+3]);
+        printf("# face detected at (x=%d, y=%d, r=%d) confidence %f\n", 
+               (int)rcsq[4*i+0], (int)rcsq[4*i+1], (int)rcsq[4*i+2], rcsq[4*i+3]);
       }
 
       detected = true;
@@ -174,15 +180,13 @@ NAN_METHOD(Detect) {
     printf("# time taken %f\n", 1000.0f * t);
   }
 
-  info.GetReturnValue().Set(Nan::New(detected));
+  return Napi::Boolean::New(env, detected);
 }
 
-NAN_MODULE_INIT(InitAll) {
-  Nan::Set(
-    target,
-    Nan::New("detect").ToLocalChecked(),
-    Nan::GetFunction(Nan::New<FunctionTemplate>(Detect)).ToLocalChecked()
-  );
+// Initialize the module
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  exports.Set("detectFaces", Napi::Function::New(env, DetectFaces));
+  return exports;
 }
 
-NODE_MODULE(supyo, InitAll);
+NODE_API_MODULE(supyo, Init)
