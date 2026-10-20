@@ -95,6 +95,12 @@ Napi::Value DetectFaces(const Napi::CallbackInfo& info) {
   int32_t ncols = info[1].ToNumber().Int32Value();
   // image height
   int32_t nrows = info[2].ToNumber().Int32Value();
+
+  if (ncols <= 0 || nrows <= 0) {
+    Napi::RangeError::New(env, "width and height must be positive").ThrowAsJavaScriptException();
+    return Napi::Boolean::New(env, false);
+  }
+	
   // sets the minimum size (in pixels) of an object - suggested 128
   int32_t minsize = info.Length() > 3 ? info[3].ToNumber().Int32Value() : 100;
   // detection quality threshold (must be >= 0.0f)
@@ -122,6 +128,11 @@ Napi::Value DetectFaces(const Napi::CallbackInfo& info) {
   int rem = size_row_raw % 4;
   int width_step = (rem == 0) ? size_row_raw : size_row_raw + rem;
 
+  if ((size_t) nrows * (size_t) width_step > bufferObj.Length()) {
+    Napi::RangeError::New(env, "image buffer is smaller than width * height").ThrowAsJavaScriptException();
+    return Napi::Boolean::New(env, false);
+  }
+	
   if (verbose) {
     printf("# width_step %d\n", width_step);
   }
